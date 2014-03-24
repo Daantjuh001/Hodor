@@ -85,6 +85,30 @@
 
 				requestAnimationFrame(render);
 			}
+
+			document.onkeypress = function(event) {
+				switch(event.which) {
+					case 119: //Up
+						//Code here plis
+						break;
+
+					case 115: //Down
+						//Code here plis
+						break;
+
+					case 97: //Left
+						//Code here plis
+						break;
+
+					case 100: //Right
+						//Code here plis
+						break;
+
+					default:
+						console.log(event.which);
+						break;
+				}
+			}
 		</script>
 	</body>
 </html>
