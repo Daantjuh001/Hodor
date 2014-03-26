@@ -22,7 +22,7 @@
 			//Setting up variables
 			var windowWidth = window.innerWidth;
 			var windowHeight = window.innerHeight;
-			
+
 			//Setting up THREE JS
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera(45, windowWidth / windowHeight, 0.1, 20000);
@@ -35,17 +35,19 @@
 			renderer.setSize(windowWidth, windowHeight);
 			document.body.appendChild(renderer.domElement);
 
-			//Adding light 
-			var light = new THREE.SpotLight();
-			light.position.set(0, 500, 0);
-			scene.add(light);
+			//Adding light
+			hemiLight = new THREE.HemisphereLight( 0x0000ff, 0x00ff00, 1 );
+			hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
+			hemiLight.groundColor.setHSL( 0.1, 1, 0.75 );
+			hemiLight.position.set( 0, 500, 0 );
+			scene.add( hemiLight );
 
 			//Creating the sky
 			//Not yet implemented
 
 			//Creating the grass
-			var grassWidth = 3200;
-			var grassHeight = 3200;
+			var grassWidth = 3200 * 6;
+			var grassHeight = 3200 * 6;
 			var grassTexture = THREE.ImageUtils.loadTexture("./models/textures/grass.jpg");
 			grassTexture.wrapS = THREE.RepeatWrapping;
 			grassTexture.wrapT = THREE.RepeatWrapping;
@@ -59,6 +61,13 @@
 			var loader = new THREE.JSONLoader();
 
 			var car;
+
+			var carSpeed = 0.0;
+			var maxSpeed = 20.0;
+			var maxReverseSpeed = -10.0;
+
+			var keyPressed = false;
+
 			loader.load("./models/car.js", function(geometry) {
 				var material = new THREE.MeshLambertMaterial({
 					map: THREE.ImageUtils.loadTexture("./models/textures/car.jpg"),
@@ -68,6 +77,10 @@
 				});
 
 				car = new THREE.Mesh(geometry, material);
+
+				camera.position.set(0, 300, -400);
+
+				car.add(camera);
 				scene.add(car);
 				render();
 			});
@@ -80,35 +93,83 @@
 				camera.lookAt(new THREE.Vector3(car.position.x, car.position.y + 100, car.position.z));*/
 
 				//Normal camera
-				camera.position.set(car.position.x, car.position.y + 300, car.position.z - 400);
-				camera.lookAt(new THREE.Vector3(car.position.x, car.position.y + 100, car.position.z));
+/*				camera.position.set(car.position.x, car.position.y + 300, car.position.z - 400);
+				camera.lookAt(new THREE.Vector3(car.position.x, car.position.y + 100, car.position.z));*/
 
+
+				if (typeof car == "object") {
+
+					car.translateZ(carSpeed);
+
+					if(keyPressed == false) {
+
+						carSpeed = lerp(carSpeed, 0, 0.01);
+					}
+				}
+
+				camera.lookAt( car.position );
 				requestAnimationFrame(render);
 			}
 
 			document.onkeypress = function(event) {
-				switch(event.which) {
-					case 119: //Up
-						//Code here plis
+
+
+				event.preventDefault();
+				event.stopPropagation();
+
+
+				console.log(event.which)
+
+				switch (event.which) {
+
+					case 119:
+						keyPressed = true;
+
+						if (carSpeed < -0.5) {
+
+							carSpeed = lerp(carSpeed, 0, 0.05);
+						} else {
+
+							carSpeed = lerp(carSpeed, maxSpeed, 0.05);
+						}
 						break;
 
-					case 115: //Down
-						//Code here plis
+					case 115:
+						keyPressed = true;
+
+						if (carSpeed > 0.5) {
+
+							carSpeed = lerp(carSpeed, 0, 0.05);
+						} else {
+
+							carSpeed = lerp(carSpeed, maxReverseSpeed, 0.05);
+						}
 						break;
 
-					case 97: //Left
-						//Code here plis
+					case 32:
+
+						carSpeed = lerp(carSpeed, 0, 0.15);
 						break;
 
-					case 100: //Right
-						//Code here plis
+					case 97:
+
+						car.rotation.y += 0.03;
 						break;
 
-					default:
-						console.log(event.which);
+					case 100:
+						car.rotation.y -= 0.03;
 						break;
 				}
 			}
+
+			document.onkeyup = function(event) {
+
+				keyPressed = false;
+			}
+
+			lerp = function(a, b, u) {
+				return (1 - u) * a + u * b;
+			};
 		</script>
 	</body>
 </html>
