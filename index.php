@@ -84,6 +84,7 @@
 		</div>
 
 		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 		<script>
 			//Setting up variables
 			var windowWidth = window.innerWidth;
@@ -129,10 +130,12 @@
 			var car;
 
 			var carSpeed = 0.0;
-			var maxSpeed = 20.0;
+			var maxSpeed = 60.0;
 			var maxReverseSpeed = -10.0;
-
-			var keyPressed = false;
+            
+            var turnSpeed = 0.015;
+            var accelerateSpeed = 0.025;
+            var handBrakeSpeed = 0.01;
 
 			loader.load("./models/car.js", function(geometry) {
 				var material = new THREE.MeshLambertMaterial({
@@ -166,72 +169,47 @@
 				if (typeof car == "object") {
 
 					car.translateZ(carSpeed);
+                    
+                    $.each(map, function( index, value ) {
 
-					if(keyPressed == false) {
+                        if(value === true) {
+                            
+                            if(index == 87) {
+                                carSpeed = lerp(carSpeed, maxSpeed, accelerateSpeed);
+                            } else if(index == 83) {
+                                
+                                carSpeed = lerp(carSpeed, maxReverseSpeed, accelerateSpeed);
+                            }
+                                   
+                            if(index == 65) {
+                            
+                                car.rotation.y += turnSpeed;
+                            } else if(index == 68) {
+                                
+                                car.rotation.y -= turnSpeed;
+                            }
 
-						carSpeed = lerp(carSpeed, 0, 0.01);
-					}
+                        } else { 
+                            
+                            carSpeed = lerp(carSpeed, 0, handBrakeSpeed);
+                        }
+                    });
 				}
 
 				camera.lookAt( car.position );
 				requestAnimationFrame(render);
 			}
-
-			document.onkeypress = function(event) {
-
-
-				event.preventDefault();
-				event.stopPropagation();
-
-
-				console.log(event.which)
-
-				switch (event.which) {
-
-					case 119:
-						keyPressed = true;
-
-						if (carSpeed < -0.5) {
-
-							carSpeed = lerp(carSpeed, 0, 0.05);
-						} else {
-
-							carSpeed = lerp(carSpeed, maxSpeed, 0.05);
-						}
-						break;
-
-					case 115:
-						keyPressed = true;
-
-						if (carSpeed > 0.5) {
-
-							carSpeed = lerp(carSpeed, 0, 0.05);
-						} else {
-
-							carSpeed = lerp(carSpeed, maxReverseSpeed, 0.05);
-						}
-						break;
-
-					case 32:
-
-						carSpeed = lerp(carSpeed, 0, 0.15);
-						break;
-
-					case 97:
-
-						car.rotation.y += 0.03;
-						break;
-
-					case 100:
-						car.rotation.y -= 0.03;
-						break;
-				}
-			}
-
-			document.onkeyup = function(event) {
-
-				keyPressed = false;
-			}
+            
+            var map = {87: false, 65: false, 83: false, 68: false, 32: false};
+            $(document).keydown(function(e) {
+                if (e.keyCode in map) {
+                    map[e.keyCode] = true;
+                }
+            }).keyup(function(e) {
+                if (e.keyCode in map) {
+                    map[e.keyCode] = false;
+                }
+            });
 
 			lerp = function(a, b, u) {
 				return (1 - u) * a + u * b;
