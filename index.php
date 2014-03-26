@@ -110,7 +110,20 @@
 			scene.add( hemiLight );
 
 			//Creating the sky
-			//Not yet implemented
+            var imagePrefix = "images/skybox-";
+            var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
+            var imageSuffix = ".png";
+            var skyGeometry = new THREE.CubeGeometry( 19500, 19500, 19500 );	
+            
+            var materialArray = [];
+            for (var i = 0; i < 6; i++)
+                materialArray.push( new THREE.MeshBasicMaterial({
+                    map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+                    side: THREE.BackSide
+                }));
+            var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+            var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+            scene.add( skyBox );
 
 			//Creating the grass
 			var grassWidth = 3200 * 6;
