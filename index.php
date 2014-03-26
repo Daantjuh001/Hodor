@@ -14,9 +14,75 @@
 				width: 100%;
 				height: 100%;
 			}
+
+			#position, #lap, #minimap, #speed {
+				position: absolute;
+			}
+
+			#position {
+				top: 32px;
+				left: 32px;
+			}
+
+			#lap {
+				top: 32px;
+				right: 32px;
+			}
+
+			#minimap {
+				left: 32px;
+				bottom: 32px;
+			}
+
+			#speed {
+				right: 32px;
+				bottom: 32px;
+			}
+
+			section {
+				margin: 4px;
+				padding: 8px;
+				width: 224px;
+				font-family: "Open Sans";
+				font-weight: bolder;
+				text-transform: uppercase;
+				background: rgba(0, 0, 0, 0.6);
+			}
+
+			section p {
+				color: #FFF;
+			}
 		</style>
 	</head>
 	<body>
+		<div id="position">
+			<section>
+				<p>Arya Stark</p>
+			</section>
+			<section>
+				<p>Ned Stark</p>
+			</section>
+			<section>
+				<p>Bran Stark</p>
+			</section>
+		</div>
+		<div id="lap">
+			<section>
+				<p>Best 1:40:749</p>
+			</section>
+			<section>
+				<p>Current 1:25:968</p>
+			</section>
+		</div>
+		<div id="minimap">
+			<!-- EMPTY -->
+		</div>
+		<div id="speed">
+			<section>
+				<p>146 km/h</p>
+			</section>
+		</div>
+
 		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
 		<script>
 			//Setting up variables
