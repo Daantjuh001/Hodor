@@ -94,6 +94,7 @@
 			var scene = new THREE.Scene();
 			var camera = new THREE.PerspectiveCamera(45, windowWidth / windowHeight, 0.1, 20000);
 			var renderer = new THREE.WebGLRenderer({ antialias: true });
+			var clock = new THREE.Clock();
 
 			//Making sure the camera object works
 			scene.add(camera);
@@ -113,8 +114,8 @@
             var imagePrefix = "images/skybox-";
             var directions  = ["xpos", "xneg", "ypos", "yneg", "zpos", "zneg"];
             var imageSuffix = ".png";
-            var skyGeometry = new THREE.CubeGeometry( 19500, 19500, 19500 );	
-            
+            var skyGeometry = new THREE.CubeGeometry( 19500, 19500, 19500 );
+
             var materialArray = [];
             for (var i = 0; i < 6; i++)
                 materialArray.push( new THREE.MeshBasicMaterial({
@@ -145,7 +146,7 @@
 			var carSpeed = 0.0;
 			var maxSpeed = 60.0;
 			var maxReverseSpeed = -10.0;
-            
+
             var turnSpeed = 0.015;
             var accelerateSpeed = 0.025;
             var handBrakeSpeed = 0.01;
@@ -162,57 +163,56 @@
 
 				camera.position.set(0, 300, -400);
 
-				car.add(camera);
 				scene.add(car);
 				render();
 			});
 
 			function render() {
 				renderer.render(scene, camera);
-
-				//Camera for testing purposes
-				/*camera.position.set(car.position.x, car.position.y + 40, car.position.z - 400);
-				camera.lookAt(new THREE.Vector3(car.position.x, car.position.y + 100, car.position.z));*/
-
-				//Normal camera
-/*				camera.position.set(car.position.x, car.position.y + 300, car.position.z - 400);
-				camera.lookAt(new THREE.Vector3(car.position.x, car.position.y + 100, car.position.z));*/
-
+				var delta = clock.getDelta();
 
 				if (typeof car == "object") {
 
 					car.translateZ(carSpeed);
-                    
+
                     $.each(map, function( index, value ) {
 
                         if(value === true) {
-                            
+
                             if(index == 87) {
-                                carSpeed = lerp(carSpeed, maxSpeed, accelerateSpeed);
+                                carSpeed = lerp(carSpeed, maxSpeed, delta);
                             } else if(index == 83) {
-                                
-                                carSpeed = lerp(carSpeed, maxReverseSpeed, accelerateSpeed);
-                            }
-                                   
-                            if(index == 65) {
-                            
-                                car.rotation.y += turnSpeed;
-                            } else if(index == 68) {
-                                
-                                car.rotation.y -= turnSpeed;
+
+                                carSpeed = lerp(carSpeed, maxReverseSpeed, delta);
                             }
 
-                        } else { 
-                            
-                            carSpeed = lerp(carSpeed, 0, handBrakeSpeed);
+                            if(index == 65) {
+
+                                car.rotateOnAxis( new THREE.Vector3(0,1,0), turnSpeed);
+                            } else if(index == 68) {
+
+                                car.rotateOnAxis( new THREE.Vector3(0,1,0), -turnSpeed);
+                            }
+
+                        } else {
+
+                            carSpeed = lerp(carSpeed, 0, delta);
                         }
                     });
 				}
 
+
+				var relativeCameraOffset = new THREE.Vector3(0,200,-500);
+
+				var cameraOffset = relativeCameraOffset.applyMatrix4( car.matrixWorld );
+
+				camera.position.x = cameraOffset.x;
+				camera.position.y = cameraOffset.y;
+				camera.position.z = cameraOffset.z;
 				camera.lookAt( car.position );
 				requestAnimationFrame(render);
 			}
-            
+
             var map = {87: false, 65: false, 83: false, 68: false, 32: false};
             $(document).keydown(function(e) {
                 if (e.keyCode in map) {
