@@ -55,36 +55,9 @@
 		</style>
 	</head>
 	<body>
-		<div id="position">
-			<section>
-				<p>Arya Stark</p>
-			</section>
-			<section>
-				<p>Ned Stark</p>
-			</section>
-			<section>
-				<p>Bran Stark</p>
-			</section>
-		</div>
-		<div id="lap">
-			<section>
-				<p>Best 1:40:749</p>
-			</section>
-			<section>
-				<p>Current 1:25:968</p>
-			</section>
-		</div>
-		<div id="minimap">
-			<!-- EMPTY -->
-		</div>
-		<div id="speed">
-			<section>
-				<p>146 km/h</p>
-			</section>
-		</div>
 
-		<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<script src="three.js"></script>
+        <script src="jquery.js"></script>
 		<script>
 			//Setting up variables
 			var windowWidth = window.innerWidth;
@@ -138,6 +111,13 @@
 			grass.doubleSided = true;
 			scene.add(grass);
 
+			//Creating the track
+			var geometry = new THREE.RingGeometry(4000, 3000, 8, 8, 0, Math.PI * 2);
+			var ring = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color: 0x3B3B3B, wireframe: false}));
+			ring.position.set(0, 2, 0);
+			ring.rotation.x = Math.PI / 2;
+			scene.add(ring);
+
 			//Loading the car object
 			var loader = new THREE.JSONLoader();
 
@@ -160,17 +140,35 @@
 				});
 
 				car = new THREE.Mesh(geometry, material);
+				car.position.set(3250, 0, 0);
 
-				camera.position.set(0, 300, -400);
+				camera.position.set(0, 0, -400);
 
 				scene.add(car);
 				render();
 			});
 
+			// Creating the smoke
+			var smokeParticles = new THREE.Geometry;
+			for (var i = 0; i < 25; i++) {
+			    var particle = new THREE.Vector3(0, 300, -400);
+			    smokeParticles.vertices.push(particle);
+			}
+
+			var smokeTexture = THREE.ImageUtils.loadTexture('images/particle.png');
+			var smokeMaterial = new THREE.ParticleBasicMaterial({ map: smokeTexture, transparent: true, blending: THREE.AdditiveBlending, size: 50, color: 0x111111 });
+
+			var smoke = new THREE.ParticleSystem(smokeParticles, smokeMaterial);
+			smoke.sortParticles = true;
+			smoke.position.x = -150;
+
+			scene.add(smoke);
+
 			function render() {
 				renderer.render(scene, camera);
 				var delta = clock.getDelta();
 
+				// Moving the car
 				if (typeof car == "object") {
 
 					car.translateZ(carSpeed);
@@ -199,6 +197,30 @@
                             carSpeed = lerp(carSpeed, 0, delta);
                         }
                     });
+
+                    // Make sure the smoke goes up and stays behind the car
+					var particleCount = smokeParticles.vertices.length;
+					while (particleCount--) {
+					    var particle = smokeParticles.vertices[particleCount];
+					    particle.y += delta * 50;
+
+					    if (particle.y >= 25) {
+					        particle.y = Math.random() * 16;
+					        particle.x = Math.random() * 5;
+					        particle.z = Math.random() * 5;
+					    }
+					}
+					smokeParticles.__dirtyVertices = true;
+
+
+					var relativeSmokeOffset = new THREE.Vector3(-22, 13, -115);
+
+					var smokeOffset = relativeSmokeOffset.applyMatrix4( car.matrixWorld );
+
+					smoke.position.x = smokeOffset.x;
+					smoke.position.y = smokeOffset.y;
+					smoke.position.z = smokeOffset.z;
+					// console.log(smoke.position)
 				}
 
 
